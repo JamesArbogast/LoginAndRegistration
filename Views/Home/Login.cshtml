@@ -1,0 +1,17 @@
+@model User
+
+<div class="text-center">
+  <h1 class="display-4">Login</h1>
+  <a href="/"><p>Sign Up</p></a>
+  <form asp-controller="Home" asp-action="ViewSuccess" method="POST">
+      <div>
+          <label asp-for="Email">Email: </label>
+          <input asp-for="Email"/>
+      </div>
+      <div>
+          <label asp-for= "Password">Password: </label>
+          <input asp-for="Password"/>
+      </div>
+      <input type="submit" value="Log In"/>
+  </form>
+</div>
