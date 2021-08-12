@@ -1,12 +1,11 @@
-@model User
+@model LoginUser
 
 <div class="text-center">
-    <h1 class="display-4">@Model.FirstName</h1>
-    <h2>@Model.LastName</h2> <a href="/"><p>Home</p></a>
+    <h1 class="display-4">@ViewBag.Session.FirstName</h1>
+    <a href="/logout"><p>Logout</p></a>
     <hr>
     <div>
-      <p>@Model.Email</p>
-      <p>@Model.Password</p>
+      <p>@Model.LoginEmail</p>
     </div>
     <div>
     </div>

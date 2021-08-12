@@ -34,17 +34,26 @@ namespace LoginAndRegistration.Controllers
                 {
                     ModelState.AddModelError("Email", "This Email is already in user!");
                 }
-                PasswordHasher<User> Hasher = new PasswordHasher<User>();
-                newUser.Password = Hasher.HashPassword(newUser, newUser.Password);
-                if(HttpContext.Session.GetString("Email") == null)
-                {
-                    HttpContext.Session.SetString("Email", "User.Email");
-                }
-                dbContext.Users.Add(newUser);
-                dbContext.SaveChanges();
-                return RedirectToAction("ViewLogin");
             }
-            return View("Index"); 
+
+            if (ModelState.IsValid == false)
+            {
+                return View("Index"); 
+            }
+
+            PasswordHasher<User> Hasher = new PasswordHasher<User>();
+            newUser.Password = Hasher.HashPassword(newUser, newUser.Password);
+            if(HttpContext.Session.GetString("Email") == null)
+            {
+                HttpContext.Session.SetString("Email", "User.Email");
+            }
+
+            dbContext.Users.Add(newUser);
+            dbContext.SaveChanges();
+            HttpContext.Session.SetInt32("UserId", newUser.UserId);
+            HttpContext.Session.SetString("FirstName", newUser.FirstName);
+
+            return View("Success");
         }
 
         [HttpGet("/users/{userId}")]
@@ -63,7 +72,6 @@ namespace LoginAndRegistration.Controllers
         {
             return View("Login");
         }
-        [HttpGet("/logout")]
         public IActionResult Logout()
         {
             if(HttpContext.Session.GetString("Email") != null)
@@ -75,27 +83,33 @@ namespace LoginAndRegistration.Controllers
         }
         public IActionResult LoginUser(LoginUser userLogin)
         {
-            if(ModelState.IsValid)
+            if(ModelState.IsValid == false)
             {
-                var userInDb = dbContext.Users.FirstOrDefault(u => u.Email == userLogin.Email);
-                if(userInDb == null)
-                {
-                    ModelState.AddModelError("Email", "Invalid Email/Password");
-                    return View("Success");
-                }
-
-                if(HttpContext.Session.GetString("Email") == null)
-                {
-                    HttpContext.Session.SetString("Email", "User.Email");
-                }
-                var hasher = new PasswordHasher<LoginUser>();
-                var result = hasher.VerifyHashedPassword(userLogin, userInDb.Password, userLogin.Password);
-                if(result == 0)
-                {
-                    ModelState.AddModelError("Password", "Password is incorrect.");
-                }
+                return View("Login");
             }
-            return RedirectToAction("NewUser", userLogin);
+
+            var userInDb = dbContext.Users.FirstOrDefault(u => u.Email == userLogin.LoginEmail);
+            
+            if(userInDb == null)
+            {
+                ModelState.AddModelError("LoginError", "Email not found");
+                return View("Login");
+            }
+
+            var hasher = new PasswordHasher<LoginUser>();
+            var result = hasher.VerifyHashedPassword(userLogin, userInDb.Password, userLogin.LoginPassword);
+
+
+            if(result == 0)
+            {
+                ModelState.AddModelError("LoginPassword", "Password is incorrect.");
+                return View("Login");
+            }
+
+            HttpContext.Session.SetInt32("UserId", userInDb.UserId);
+            HttpContext.Session.SetString("FirstName", userInDb.FirstName);
+            
+            return RedirectToAction("ViewSuccess");
         }
 
         public IActionResult ViewSuccess()
